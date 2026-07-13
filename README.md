@@ -36,7 +36,9 @@ npm run preview
 npm run deploy
 ```
 
-Live: [docsigner.pages.dev](https://docsigner.pages.dev)
+Live: [docsigner.vanrossum.dev](https://docsigner.vanrossum.dev)
+
+Privacy-friendly **Cloudflare Web Analytics** is enabled (no cookies; docs still never leave the browser).
 
 ## Stack
 
