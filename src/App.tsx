@@ -394,7 +394,7 @@ export default function App() {
           </button>
           <a
             className="icon-btn header-github"
-            href="https://github.com/jeffreyvr"
+            href="https://github.com/jeffreyvr/docsigner"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
