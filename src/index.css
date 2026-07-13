@@ -1,0 +1,108 @@
+/* Design tokens lifted from vanrossum.dev —
+   warm paper + ink, indigo accent, brand-green highlights, neo-brutal borders. */
+:root {
+  --bg: #fbfaf8;
+  --card: #ffffff;
+  --tint: #f6f4ef;
+  --chip: #f0efec;
+  --ink: #141414;
+  --body: #3a3a38;
+  --soft: #55554f;
+  --mut: #98948c;
+  --line-strong: #141414;
+  --line: rgba(20, 20, 20, 0.15);
+  --divider: rgba(20, 20, 20, 0.12);
+  --hair: rgba(20, 20, 20, 0.07);
+  --accent: #070082;
+  --accent-soft: rgba(7, 0, 130, 0.07);
+  --green: #70f69a;
+  --green-soft: rgba(112, 246, 154, 0.25);
+  --green-ink: #07300f;
+  --green-text: #0b7a3e;
+  --band: #070082;
+  --danger: #b91c1c;
+  --danger-bg: #fef2f2;
+  --danger-border: #fecaca;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+  /* legacy aliases used in App.css */
+  --surface: var(--card);
+  --surface-hover: var(--tint);
+  --text: var(--ink);
+  --text-secondary: var(--body);
+  --muted: var(--mut);
+  --border: var(--line);
+  --border-strong: var(--line-strong);
+  --accent-hover: #0a00a8;
+}
+
+.dark {
+  --bg: #161513;
+  --card: #1e1d1a;
+  --tint: #232220;
+  --chip: #2a2925;
+  --ink: #f1efe9;
+  --body: #cfccc4;
+  --soft: #aca9a1;
+  --mut: #85817a;
+  --line-strong: #f1efe9;
+  --line: rgba(241, 239, 233, 0.22);
+  --divider: rgba(241, 239, 233, 0.15);
+  --hair: rgba(241, 239, 233, 0.08);
+  --accent: #9aa2ff;
+  --accent-soft: rgba(154, 162, 255, 0.13);
+  --green-soft: rgba(112, 246, 154, 0.16);
+  --green-text: #86efac;
+  --band: #191552;
+  --danger: #fca5a5;
+  --danger-bg: rgba(185, 28, 28, 0.18);
+  --danger-border: rgba(248, 113, 113, 0.35);
+  --accent-hover: #b4baff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--ink);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+::selection {
+  background: var(--green);
+  color: var(--green-ink);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+a {
+  color: var(--accent);
+}

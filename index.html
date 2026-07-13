@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>DocSigner — Sign PDFs in your browser · vanrossum.dev</title>
+    <meta
+      name="description"
+      content="Sign multi-page PDFs in your browser. Draw your signature and initials, place them on any page, download. Nothing is uploaded — your docs stay on your device. Free tool from vanrossum.dev."
+    />
+    <meta name="author" content="Jeffrey van Rossum" />
+    <meta name="creator" content="Jeffrey van Rossum" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#070082" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#161513" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="canonical" href="https://docsigner.vanrossum.dev/" />
+
+    <!-- Favicons (vanrossum.dev mark) -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="vanrossum.dev" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://docsigner.vanrossum.dev/" />
+    <meta property="og:title" content="DocSigner — Sign PDFs in your browser" />
+    <meta
+      property="og:description"
+      content="Sign multi-page PDFs in your browser. Nothing is uploaded — your docs stay on your device. Free tool from vanrossum.dev."
+    />
+    <meta property="og:image" content="https://docsigner.vanrossum.dev/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="DocSigner by vanrossum.dev — Sign PDFs in your browser. Nothing is uploaded."
+    />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@jeffreyrossum" />
+    <meta name="twitter:creator" content="@jeffreyrossum" />
+    <meta name="twitter:title" content="DocSigner — Sign PDFs in your browser" />
+    <meta
+      name="twitter:description"
+      content="Sign multi-page PDFs in your browser. Nothing is uploaded — your docs stay on your device."
+    />
+    <meta name="twitter:image" content="https://docsigner.vanrossum.dev/og.png" />
+    <meta
+      name="twitter:image:alt"
+      content="DocSigner by vanrossum.dev — Sign PDFs in your browser."
+    />
+
+    <!-- JSON-LD -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "DocSigner",
+        "url": "https://docsigner.vanrossum.dev/",
+        "description": "Sign multi-page PDFs in your browser. Nothing is uploaded — your docs stay on your device.",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        },
+        "creator": {
+          "@type": "Person",
+          "name": "Jeffrey van Rossum",
+          "url": "https://vanrossum.dev",
+          "sameAs": [
+            "https://x.com/jeffreyrossum",
+            "https://github.com/jeffreyvr"
+          ]
+        },
+        "publisher": {
+          "@type": "Person",
+          "name": "Jeffrey van Rossum",
+          "url": "https://vanrossum.dev"
+        },
+        "image": "https://docsigner.vanrossum.dev/og.png",
+        "isAccessibleForFree": true
+      }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.bunny.net" />
+    <link
+      href="https://fonts.bunny.net/css?family=inter:400,500,600,700"
+      rel="stylesheet"
+    />
+    <script>
+      const theme =
+        localStorage.getItem('theme') ??
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      document.documentElement.classList.toggle('dark', theme === 'dark')
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
