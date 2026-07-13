@@ -30,6 +30,14 @@ npm run build
 npm run preview
 ```
 
+## Deploy (Cloudflare Pages)
+
+```bash
+npm run deploy
+```
+
+Live: [docsigner.pages.dev](https://docsigner.pages.dev)
+
 ## Stack
 
 - React + TypeScript + Vite
