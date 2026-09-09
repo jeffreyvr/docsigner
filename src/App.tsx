@@ -6,7 +6,7 @@ import { PDFViewer } from './components/PDFViewer'
 import { Logo } from './components/Logo'
 import { ThanksModal } from './components/ThanksModal'
 import { downloadBytes, exportSignedPdf } from './utils/pdfExport'
-import type { Placement, StampType } from './types'
+import { STAMP_SIZE, type Placement, type StampType } from './types'
 import './App.css'
 
 // Vite-friendly worker setup
@@ -132,11 +132,12 @@ export default function App() {
 
   const placeStamp = (pageIndex: number, x: number, y: number) => {
     if (!activeTool || !pdf) return
-    const image = activeTool === 'signature' ? signature : initials
-    if (!image) return
+    if (activeTool !== 'text') {
+      const image = activeTool === 'signature' ? signature : initials
+      if (!image) return
+    }
 
-    const width = activeTool === 'signature' ? 0.28 : 0.12
-    const height = activeTool === 'signature' ? 0.08 : 0.06
+    const { width, height } = STAMP_SIZE[activeTool]
 
     const pageIndexes =
       applyToAllPages && pdf.numPages > 1
@@ -151,9 +152,13 @@ export default function App() {
       y,
       width,
       height,
+      ...(activeTool === 'text' ? { text: '' } : {}),
     }))
 
-    setPlacements((prev) => [...prev, ...created])
+    setPlacements((prev) => [
+      ...prev.filter((p) => p.type !== 'text' || (p.text ?? '').trim() !== ''),
+      ...created,
+    ])
     const focus = created.find((p) => p.pageIndex === pageIndex) ?? created[0]
     setSelectedId(focus.id)
   }
@@ -167,6 +172,15 @@ export default function App() {
   const removePlacement = (id: string) => {
     setPlacements((prev) => prev.filter((p) => p.id !== id))
     if (selectedId === id) setSelectedId(null)
+  }
+
+  const selectPlacement = (id: string | null) => {
+    setSelectedId(id)
+    setPlacements((prev) =>
+      prev.filter(
+        (p) => p.type !== 'text' || (p.text ?? '').trim() !== '' || p.id === id,
+      ),
+    )
   }
 
   const handleDownload = async () => {
@@ -248,7 +262,7 @@ export default function App() {
         <h2>Place on document</h2>
         <p className="muted place-hint">
           Select a tool, then click on a page to place it. Drag to move, use the
-          corner handle to resize.
+          corner handle to resize. Text: click and type.
         </p>
         <div className="tool-row">
           <button
@@ -290,6 +304,17 @@ export default function App() {
               )}
             </span>
             Initials
+          </button>
+          <button
+            type="button"
+            className={`tool-btn tool-btn-wide ${activeTool === 'text' ? 'active' : ''}`}
+            onClick={() => selectTool('text')}
+            title="Click a page, then type"
+          >
+            <span className="tool-preview">
+              <span className="tool-empty tool-text-mark">Aa</span>
+            </span>
+            Text
           </button>
         </div>
         {pdf.numPages > 1 && (
@@ -530,7 +555,7 @@ export default function App() {
               onUpdatePlacement={updatePlacement}
               onRemovePlacement={removePlacement}
               selectedId={selectedId}
-              onSelect={setSelectedId}
+              onSelect={selectPlacement}
             />
           </main>
 
@@ -574,6 +599,13 @@ export default function App() {
                   onClick={() => selectTool('initials')}
                 >
                   Initials
+                </button>
+                <button
+                  type="button"
+                  className={`mobile-bar-btn tool ${activeTool === 'text' ? 'active' : ''}`}
+                  onClick={() => selectTool('text')}
+                >
+                  Text
                 </button>
               </div>
 

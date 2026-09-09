@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
-import type { Placement, StampType } from '../types'
+import { STAMP_SIZE, type Placement, type StampType } from '../types'
 
 interface PDFViewerProps {
   pdf: PDFDocumentProxy
@@ -59,16 +59,23 @@ export function PDFViewer({
     // Ignore if clicking a stamp
     if ((e.target as HTMLElement).closest('.stamp')) return
 
+    // Text: first click places, next click on the page finishes typing
+    if (activeTool === 'text' && selectedId) {
+      onSelect(null)
+      return
+    }
+
     const rect = e.currentTarget.getBoundingClientRect()
     const clickX = (e.clientX - rect.left) / rect.width
     const clickY = (e.clientY - rect.top) / rect.height
 
-    // Default stamp sizes (normalized)
-    const defaultW = activeTool === 'signature' ? 0.28 : 0.12
-    const defaultH = activeTool === 'signature' ? 0.08 : 0.06
+    const { width: defaultW, height: defaultH } = STAMP_SIZE[activeTool]
 
-    // Center stamp on click
-    const x = Math.max(0, Math.min(1 - defaultW, clickX - defaultW / 2))
+    // Text starts at the click; marks are centered on it
+    const x =
+      activeTool === 'text'
+        ? Math.max(0, Math.min(1 - defaultW, clickX))
+        : Math.max(0, Math.min(1 - defaultW, clickX - defaultW / 2))
     const y = Math.max(0, Math.min(1 - defaultH, clickY - defaultH / 2))
 
     onPlace(pageIndex, x, y)
@@ -176,8 +183,8 @@ function PageCanvas({
         <canvas ref={canvasRef} className="pdf-page-canvas" />
         {rendered &&
           placements.map((p) => {
-            const src = imageFor(p.type)
-            if (!src) return null
+            const src = p.type === 'text' ? undefined : (imageFor(p.type) ?? undefined)
+            if (p.type !== 'text' && !src) return null
             return (
               <Stamp
                 key={p.id}
@@ -198,7 +205,7 @@ function PageCanvas({
 
 interface StampProps {
   placement: Placement
-  src: string
+  src?: string
   selected: boolean
   onSelect: () => void
   onUpdate: (patch: Partial<Placement>) => void
@@ -215,42 +222,70 @@ function Stamp({
   onRemove,
   containerRef,
 }: StampProps) {
+  const isText = placement.type === 'text'
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const focusedOnce = useRef(false)
   const dragRef = useRef<{
-    mode: 'move' | 'resize'
+    mode: 'pending' | 'move' | 'resize'
     startX: number
     startY: number
     orig: Placement
   } | null>(null)
 
-  const onPointerDownMove = (e: React.PointerEvent) => {
+  useEffect(() => {
+    if (!isText || !selected || focusedOnce.current) return
+    focusedOnce.current = true
+    const node = textareaRef.current
+    if (!node) return
+    node.focus()
+    const end = node.value.length
+    node.setSelectionRange(end, end)
+  }, [isText, selected])
+
+  const beginDrag = (
+    e: React.PointerEvent,
+    mode: 'pending' | 'move' | 'resize',
+  ) => {
     e.stopPropagation()
-    e.preventDefault()
+    if (mode !== 'pending') e.preventDefault()
     onSelect()
     dragRef.current = {
-      mode: 'move',
+      mode,
       startX: e.clientX,
       startY: e.clientY,
       orig: { ...placement },
     }
-    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    if (mode !== 'pending') {
+      ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    }
   }
 
-  const onPointerDownResize = (e: React.PointerEvent) => {
-    e.stopPropagation()
-    e.preventDefault()
-    onSelect()
-    dragRef.current = {
-      mode: 'resize',
-      startX: e.clientX,
-      startY: e.clientY,
-      orig: { ...placement },
+  const onPointerDownMove = (e: React.PointerEvent) => beginDrag(e, 'move')
+  const onPointerDownResize = (e: React.PointerEvent) => beginDrag(e, 'resize')
+
+  const onPointerDownText = (e: React.PointerEvent) => {
+    if (selected) {
+      e.stopPropagation()
+      return
     }
-    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    beginDrag(e, 'pending')
   }
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!dragRef.current || !containerRef.current) return
+
+      if (dragRef.current.mode === 'pending') {
+        const dist = Math.hypot(
+          e.clientX - dragRef.current.startX,
+          e.clientY - dragRef.current.startY,
+        )
+        if (dist < 6) return
+        dragRef.current.mode = 'move'
+        textareaRef.current?.blur()
+        ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+      }
+
       const rect = containerRef.current.getBoundingClientRect()
       const dx = (e.clientX - dragRef.current.startX) / rect.width
       const dy = (e.clientY - dragRef.current.startY) / rect.height
@@ -260,7 +295,7 @@ function Stamp({
         const x = Math.max(0, Math.min(1 - o.width, o.x + dx))
         const y = Math.max(0, Math.min(1 - o.height, o.y + dy))
         onUpdate({ x, y })
-      } else {
+      } else if (dragRef.current.mode === 'resize') {
         const width = Math.max(0.04, Math.min(1 - o.x, o.width + dx))
         const height = Math.max(0.02, Math.min(1 - o.y, o.height + dy))
         onUpdate({ width, height })
@@ -269,13 +304,20 @@ function Stamp({
     [containerRef, onUpdate],
   )
 
-  const onPointerUp = () => {
+  const onPointerUp = (e: React.PointerEvent) => {
+    const pending = dragRef.current?.mode === 'pending'
     dragRef.current = null
+    if (pending) {
+      textareaRef.current?.focus()
+    }
+    if ((e.target as HTMLElement).hasPointerCapture?.(e.pointerId)) {
+      ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
+    }
   }
 
   return (
     <div
-      className={`stamp ${selected ? 'selected' : ''}`}
+      className={`stamp ${selected ? 'selected' : ''} ${isText ? 'stamp-text' : ''}`}
       style={{
         left: `${placement.x * 100}%`,
         top: `${placement.y * 100}%`,
@@ -286,11 +328,37 @@ function Stamp({
         e.stopPropagation()
         onSelect()
       }}
-      onPointerDown={onPointerDownMove}
+      onPointerDown={isText ? undefined : onPointerDownMove}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     >
-      <img src={src} alt={placement.type} draggable={false} />
+      {isText ? (
+        <>
+          {selected && (
+            <div
+              className="stamp-drag"
+              onPointerDown={onPointerDownMove}
+              title="Drag to move"
+            />
+          )}
+          <textarea
+            ref={textareaRef}
+            className="stamp-textarea"
+            value={placement.text ?? ''}
+            placeholder="Type here"
+            rows={1}
+            spellCheck={false}
+            onChange={(e) => onUpdate({ text: e.target.value })}
+            onPointerDown={onPointerDownText}
+            onClick={(e) => {
+              e.stopPropagation()
+              onSelect()
+            }}
+          />
+        </>
+      ) : (
+        <img src={src} alt={placement.type} draggable={false} />
+      )}
       {selected && (
         <>
           <button
@@ -304,10 +372,7 @@ function Stamp({
           >
             ×
           </button>
-          <div
-            className="stamp-resize"
-            onPointerDown={onPointerDownResize}
-          />
+          <div className="stamp-resize" onPointerDown={onPointerDownResize} />
         </>
       )}
     </div>
